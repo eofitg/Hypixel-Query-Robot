@@ -24,4 +24,4 @@ Based on Clousx6&amp;lua
 ------------
 
 **NOTE:**
-*Don't forget to renew your api key regularly*
+*Don't forget to renew the api key regularly*
