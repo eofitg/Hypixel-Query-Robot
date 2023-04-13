@@ -1,9 +1,63 @@
 
-    
 
-#hyp .*|#hyp|#uuid .*
+
+#uuid .*|#uuid
 --lua编程
 function main(m)
+    --
+    -- 查询玩家uuid
+    --
+    -- 外挂lua包存储路径
+    package.path = "/storage/emulated/0/luaPackages/?.lua;" .. package.path
+    -- 必需依赖
+    local json = require "json"
+    --
+    n       = m
+    msg     = n.msg                --获取发言人的消息
+    sendid  = n.sendid             --获取发言人的QQ
+    groupid = n.groupid            --获取机器人的群号
+    robort  = n.robort             --获取机器人QQ
+    nick    = n.nick               --获取机器人昵称
+    zhu     = n.zhu                --获取主人
+    ATQ     = n.ATQ                --获取艾特QQ
+    --
+    local input  = split(msg, " ")
+    local NoI    = #input
+    --
+    if NoI == 1 then                                                            -- #uuid
+        local res = "查询方式:\n#uuid <name>\n无效ID将不做回复"
+        n:send(res)
+        return
+    end
+    --
+    local mojangAPI = "https://api.mojang.com/users/profiles/minecraft/"
+    local name = input[NoI]
+    n:send("Getting uuid ... (No reply:Invaild Player Name)")
+    --
+    local mjdata = n:get(mojangAPI..name)
+    local t = json.decode(mjdata)
+    local uuid = t["id"]
+    n:send("Success.\n"..name.."\'s Unique User ID:\n"..uuid)
+    --
+end
+--
+-- 字符串分割
+function split(str, reps)
+    local resultStrList = {}
+    string.gsub(str,'[^'..reps..']+',function (w)
+        table.insert(resultStrList,w)
+    end)
+    return resultStrList
+end
+
+    
+
+#hyp .*|#hyp
+--lua编程
+function main(m)
+    --
+    -- 查询Hypixel数据
+    --
     -- 外挂lua包存储路径
     package.path = "/storage/emulated/0/luaPackages/?.lua;" .. package.path
     -- 必需依赖
@@ -39,25 +93,13 @@ function main(m)
     local GameType = {
         ["BEDWARS"] = "起床战争", ["SKYWARS"] = "空岛战争", 
         ["DUELS"] = "决斗游戏", ["ARCADE"] = "街机游戏", 
-        ["MURDER_MYSTERY"] = "密室杀手", ["SKYBLOCK"] = "空岛生存", 
-        ["PIT"] = "天坑乱斗"
+        ["MURDER_MYSTERY"] = "密室杀手", ["SKYBLOCK"] = "空岛生存",  
+        ["PIT"] = "天坑乱斗", ["HOUSING"] = "家园世界", 
+        ["TNTGAMES"] = "TNT游戏", ["MCGO"] = "MCGO", 
+        ["SURVIVAL_GAMES"] = "饥饿游戏", ["WALLS3"] = "超级战墙", 
+        ["UHC"] = "UHC", ["PROTOTYPE"] = "游戏实验室", 
+        ["BUILD_BATTLE"] = "建筑比赛"
     }
-    --
-    -- 查询玩家uuid
-    --
-    if prefix == "#uuid" then
-    	local name = input[NoI]
-        n:send("Getting uuid ... (No reply:Invaild Player Name)")
-		local mjdata = n:get(mojangAPI..name)
-        if mjdata ~= nil then
-            local t = json.decode(mjdata)
-            local uuid = t["id"]
-            n:send("Success.\n"..name.."\'s Unique User ID:\n"..uuid)
-        else
-            n:send("Error:Invaild Player Name.")
-        end
-        return
-    end
     --
     -- 根据项数判断消息类型
     --
@@ -104,16 +146,20 @@ function main(m)
             res = res .. "\n| 创建时间:" .. limitTime(string.sub(getString(guild, "created"), 1, 10))
             res = res .. "\n| 总人数:" .. #getTable(guild, "members")
             res = res .. "\n| 最高在线人数:" .. getInt(getTable(guild, "achievements"), "ONLINE_PLAYERS")
+            --
             if table.kIn(guild, "description") then
                 res = res .. "\n| 公会介绍:" .. getString(guild, "description")
             end
             --
+            n:send(res)
+            delay(1000)
+            res = ""
             if table.kIn(guild, "tagColor") then
                 local tagColor = getString(guild, "tagColor")
                 if table.kIn(Color, tagColor) then
                     tagColor = Color[tagColor]
                 end
-                res = res .. "\n| 标签颜色:" .. tagColor
+                res = res .. "| 标签颜色:" .. tagColor
             end
             --
             if table.kIn(guild, "preferredGames") then
@@ -173,7 +219,7 @@ function main(m)
             --
             res = res .. "[LV." .. getLevel(getInt(player, "networkExp")) .. "]"
             --
-            if table.kIn(session, "online") then
+            if table.kIn(session, "online") and table.kIn(player, "lastLogin") then
                 res = res .. "[" .. Online[getBoolean(session, "online")] .. "]"
             end
             --
@@ -182,14 +228,14 @@ function main(m)
             end
             --
             if table.kIn(player, "userLanguage") then
-            	local userLanguage = getString(player, "userLanguage")
+                local userLanguage = getString(player, "userLanguage")
                 if table.kIn(Language, userLanguage) then
-                	userLanguage = Language[userLanguage]
+                    userLanguage = Language[userLanguage]
                 end
-            	res = res .. "\n| 用户语言:" .. userLanguage
+                res = res .. "\n| 用户语言:" .. userLanguage
             end
             if table.kIn(player, "firstLogin") and not table.kIn(player, "userLanguage") then
-            	res = res .. "\n| 用户语言:默认（英语）"
+                res = res .. "\n| 用户语言:默认（英语）"
             end
             --
             if table.kIn(player, "mostRecentGameType") then
@@ -197,7 +243,7 @@ function main(m)
                 if table.kIn(GameType, mostRecentGameType) then
                     mostRecentGameType = GameType[mostRecentGameType]
                 end
-            	res = res .. "\n| 最近游玩:" .. mostRecentGameType
+                res = res .. "\n| 最近游玩:" .. mostRecentGameType
             end
             --
             res = res .. "\n| 发言频道:" .. getString(player, "channel")
@@ -206,29 +252,30 @@ function main(m)
             res = res .. "\n| 人品值:" .. getInt(player, "karma")
             --
             if table.kIn(player, "firstLogin") then
-            	res = res .. "\n| 首次登录:" .. limitTime(string.sub(getString(player, "firstLogin"), 1, 10))
+                res = res .. "\n| 首次登录:" .. limitTime(string.sub(getString(player, "firstLogin"), 1, 10))
             end
             if table.kIn(player, "lastLogin") then
-            	res = res .. "\n| 最后登录:" .. limitTime(string.sub(getString(player, "lastLogin"), 1, 10))
+                res = res .. "\n| 最后登录:" .. limitTime(string.sub(getString(player, "lastLogin"), 1, 10))
             end
             if table.kIn(player, "lastLogout") then
-            	res = res .. "\n| 最后登出:" .. limitTime(string.sub(getString(player, "lastLogout"), 1, 10))
+                res = res .. "\n| 最后登出:" .. limitTime(string.sub(getString(player, "lastLogout"), 1, 10))
             end
             --
             n:send(res)
+            delay(1000)
             res = "| 社交媒体:"
             if table.kIn(player, "socialMedia") then
-            	local socialMedia = getTable(player, "socialMedia")
+                local socialMedia = getTable(player, "socialMedia")
                 if table.kIn(socialMedia, "links") then
-                	local links = getTable(socialMedia, "links")
+                    local links = getTable(socialMedia, "links")
                     if table.kIn(links, "YOUTUBE") then
-                    	res = res .. "\n| YouTube:" .. links["YOUTUBE"]
+                        res = res .. "\n| YouTube:" .. links["YOUTUBE"]
                     end
-                	if table.kIn(links, "DISCORD") then
-                    	res = res .. "\n| Discord:" .. links["DISCORD"]
+                    if table.kIn(links, "DISCORD") then
+                        res = res .. "\n| Discord:" .. links["DISCORD"]
                     end
                     if table.kIn(links, "TWITTER") then
-                    	res = res .. "\n| Twitter:" .. links["TWITTER"]
+                        res = res .. "\n| Twitter:" .. links["TWITTER"]
                     end
                 end
             end
@@ -712,11 +759,11 @@ end
 --
 -- 获取bedwars数据:
 function getBedwarsData(bedwars, res, mode, star)
-	--
+    --
     -- 映射Bedwars模式名称
     --
     local BedwarsMode = {
-    	["eight_one"] = "Solo", ["eight_two"] = "Double", 
+        ["eight_one"] = "Solo", ["eight_two"] = "Double", 
         ["four_three"] = "3v3v3v3", ["two_four"] = "4v4", 
         ["four_four"] = "4v4v4v4", 
         ["eight_two_rush"] = "Rush Double", ["four_four_rush"] = "Rush 4v4v4v4", 
@@ -763,6 +810,14 @@ function getBedwarsData(bedwars, res, mode, star)
     res = res .. "\n| 金锭收集:" .. gold .. " | 铁锭收集:" .. iron
     --
     return res
+end
+--
+-- 暴力延迟
+function delay(n)
+    local i = 0
+    while i < n do
+        i = i + 0.001
+    end
 end
 
 
