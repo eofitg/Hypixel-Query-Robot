@@ -8,7 +8,7 @@ Based on Clousx6&amp;lua
 * All Hypixel Games
 * Hypixel Player Estimated Winstreak
 * Hypixel Player Daily Stats and Session Stats
-* McPlayHD Stats Query ~~~(Although I don't know if they had public API at all)~~~
+* McPlayHD Stats Query ~~(Although I don't know if they had public API at all)~~
 
 #### Usage
 * #uuid
