@@ -18,6 +18,10 @@ Based on Clousx6&amp;lua
 * `#uuid` No reply if you use invaild player name
 * `#hyp` Wrong format if you use player or guild name that does not exist in hypixel
 
+### API
+* `api.hypixel.net`
+* `api.mojang.com`
+
 #### Credits
 * Clousx6
 
