@@ -77,7 +77,8 @@ function main(m)
     local prefix = input[1]
     --
     local mojangAPI = "https://api.mojang.com/users/profiles/minecraft/"
-    local key       = ""
+    local hypkey    = ""                    -- Hypixel Key
+    local askey     = ""                    -- AntiSniper Key
     --
     -- 映射信息代码的中文名称
     --
@@ -100,11 +101,28 @@ function main(m)
         ["UHC"] = "UHC", ["PROTOTYPE"] = "游戏实验室", 
         ["BUILD_BATTLE"] = "建筑比赛"
     }
+    local Practice = {
+        ["BRIDGING"] = "搭路练习", ["FIREBALL_JUMPING"] = "火焰弹/TNT跳", ["MLG"] = "水桶/梯子自救"
+    }
+    local Bridging = {
+        ["bridging_distance_30:elevation_NONE:angle_STRAIGHT:"] = "30格水平", 
+        ["bridging_distance_50:elevation_NONE:angle_STRAIGHT:"] = "50格水平", 
+        ["bridging_distance_100:elevation_NONE:angle_STRAIGHT:"] = "100格水平", 
+        ["bridging_distance_30:elevation_SLIGHT:angle_STRAIGHT:"] = "30格向上", 
+        ["bridging_distance_50:elevation_SLIGHT:angle_STRAIGHT:"] = "50格向上", 
+        ["bridging_distance_100:elevation_SLIGHT:angle_STRAIGHT:"] = "100格向上", 
+        ["bridging_distance_30:elevation_NONE:angle_DIAGONAL:"] = "30格斜向水平", 
+        ["bridging_distance_50:elevation_NONE:angle_DIAGONAL:"] = "50格斜向水平", 
+        ["bridging_distance_100:elevation_NONE:angle_DIAGONAL:"] = "100格斜向水平", 
+        ["bridging_distance_30:elevation_SLIGHT:angle_DIAGONAL:"] = "30格斜向向上", 
+        ["bridging_distance_50:elevation_SLIGHT:angle_DIAGONAL:"] = "50格斜向向上", 
+        ["bridging_distance_100:elevation_SLIGHT:angle_DIAGONAL:"] = "100格斜向向上"
+    }
     --
     -- 根据项数判断消息类型
     --
     if NoI == 1 then                                                            -- #hyp
-        local res = "查询方式:\n#hyp <name>\n#hyp <class> <name>\n#hyp <class> <mode> <name>\n \n输入#hypall查询支持参数列表"
+        local res = "查询方式:\n#hyp <name>\n#hyp <category> <name>\n#hyp <category> <mode> <name>\n \n输入#hypall查询支持参数列表"
         n:send(res)
         return
     end
@@ -113,7 +131,7 @@ function main(m)
     --
     if input[2] == "gu" then
         local name = string.sub(msg, 9, #msg)
-        local guildAPI     = "https://api.hypixel.net/guild?key=" .. key .. "&name=" .. name
+        local guildAPI     = "https://api.hypixel.net/guild?key=" .. hypkey .. "&name=" .. name
         local guildData    = json.decode(n:get(guildAPI))
         --
         local success = getBoolean(guildData, "success")
@@ -123,6 +141,8 @@ function main(m)
             local guild = getTable(guildData, "guild")
             local name  = getString(guild, "name")
             local res   = name
+            --
+            -- 公会经验值转换为等级
             --
             local exp = getInt(guild, "exp")
             local level = 0
@@ -137,6 +157,7 @@ function main(m)
                     i = i + 1
                 end
             end
+            --
             res = res .. "[LV." .. level .. "]"
             --
             if table.kIn(guild, "tag") then
@@ -190,11 +211,11 @@ function main(m)
     --
     -- 解析hypixelAPI获取那一大坨返回值
     --
-    local playerAPI    = "https://api.hypixel.net/player?key=" .. key .. "&uuid=" .. uuid
+    local playerAPI    = "https://api.hypixel.net/player?key=" .. hypkey .. "&uuid=" .. uuid
     local playerData   = json.decode(n:get(playerAPI))
-    local statusAPI    = "https://api.hypixel.net/status?key=" .. key .. "&uuid=" .. uuid
+    local statusAPI    = "https://api.hypixel.net/status?key=" .. hypkey .. "&uuid=" .. uuid
     local statusData   = json.decode(n:get(statusAPI))
-    local guildAPI_    = "https://api.hypixel.net/guild?key=" .. key .. "&player=" .. uuid
+    local guildAPI_    = "https://api.hypixel.net/guild?key=" .. hypkey .. "&player=" .. uuid
     local guildData_   = json.decode(n:get(guildAPI_))
     --
     -- 清洗hypixelAPI的返回值
@@ -292,7 +313,15 @@ function main(m)
                 local bedwars = player["stats"]["Bedwars"]
                 local star    = getInt(player["achievements"], "bedwars_level")
                 --
+                local ewsAPI = "https://api.antisniper.net/v2/player/winstreak?key=" .. askey .. "&player=" .. uuid
+                local ewsData = json.decode(n:get(ewsAPI))
+                local ewinstreak = "获取失败"
+                if getBoolean(ewsData, "success") then
+                    ewinstreak = getInt(ewsData, "overall_winstreak")
+                end
+                --
                 local coins         = getInt(bedwars, "coins")
+                local challenges    = getInt(bedwars, "bw_unique_challenges_completed")
                 local kills         = getInt(bedwars, "kills_bedwars")
                 local deaths        = getInt(bedwars, "deaths_bedwars")
                 local kdr           = keepDecimalTest(kills / deaths, 2)
@@ -314,14 +343,15 @@ function main(m)
                     winstreak = bedwars["winstreak"]
                 end
                 --
-                res = res .. "[" .. star .. "✫]的Bedwars数据:"
-                res = res .. "\n| 硬币:" .. coins .. " | 连胜:" .. winstreak
-                res = res .. "\n| 击杀:" .. kills .. " 死亡:" .. deaths .. " K/D:" .. kdr
-                res = res .. "\n| 终杀:" .. final_kills .. " 终死:" .. final_deaths .. " FK/D:" .. fkdr
-                res = res .. "\n| 拆床:" .. beds_broken .. " 被拆:" .. beds_lost .. " BB/L:" .. bblr
-                res = res .. "\n| 胜场:" .. wins .. " 败场:" .. losses .. " W/L:" .. wlr
-                res = res .. "\n| 绿宝石收集:" .. emerald .. " | 钻石收集:" .. diamond
-                res = res .. "\n| 金锭收集:" .. gold .. " | 铁锭收集:" .. iron
+                res = res .. "[" .. star .. "✫] Bedwars:"
+                res = res .. "\n| 硬币:" .. coins .. " | WS:" .. winstreak
+                res = res .. "\n| 完成挑战:".. challenges .. " | EWS:" .. ewinstreak
+                res = res .. "\n| K:" .. kills .. " D:" .. deaths .. " K/D:" .. kdr
+                res = res .. "\n| FK:" .. final_kills .. " FD:" .. final_deaths .. " FK/D:" .. fkdr
+                res = res .. "\n| BB:" .. beds_broken .. " BL:" .. beds_lost .. " BB/L:" .. bblr
+                res = res .. "\n| W:" .. wins .. " L:" .. losses .. " W/L:" .. wlr
+                res = res .. "\n| 绿收集:" .. emerald .. " | 钻收集:" .. diamond
+                res = res .. "\n| 金收集:" .. gold .. " | 铁收集:" .. iron
                 --
             end
             if cls == "sw" then
@@ -347,10 +377,10 @@ function main(m)
                     winstreak = skywars["win_streak"]
                 end
                 --
-                res = res .. "[" .. star .. "]的SkyWars数据:"
-                res = res .. "\n| 硬币:" .. coins .. " | 连胜:" .. winstreak
-                res = res .. "\n| 击杀:" .. kills .. " 死亡:" .. deaths .. " K/D:" .. kdr
-                res = res .. "\n| 胜场:" .. wins .. " 败场:" .. losses .. " W/L:" .. wlr
+                res = res .. "[" .. star .. "] SkyWars:"
+                res = res .. "\n| 硬币:" .. coins .. " | WS:" .. winstreak
+                res = res .. "\n| K:" .. kills .. " D:" .. deaths .. " K/D:" .. kdr
+                res = res .. "\n| W:" .. wins .. " L:" .. losses .. " W/L:" .. wlr
                 res = res .. "\n| 头颅:" .. heads .. " | 灵魂:" .. souls
                 res = res .. "\n| 助攻:" .. assists .. " | 最近游玩:" .. lastMode
                 --
@@ -363,148 +393,161 @@ function main(m)
             --
             if cls == "bw" then
                 --
+                -- 查询bedwars某一模式的数据
+                --
                 local bedwars = player["stats"]["Bedwars"]
                 local star    = getInt(player["achievements"], "bedwars_level")
                 --
-                if mode == "81" then
+                local ewsAPI = "https://api.antisniper.net/v2/player/winstreak?key=" .. askey .. "&player=" .. uuid
+                local ewsData = json.decode(n:get(ewsAPI))
+                --
+                if mode == "pra" then           -- 查询bedwars practice数据
+                    if table.kIn(bedwars, "practice") then 
+                        --
+                        local practice = bedwars["practice"]
+                        --
+                        selected = practice["selected"]
+                        if table.kIn(Practice, selected) then
+                            selected = Practice[selected]
+                        end
+                        res = res .. "[" .. star .. "✫] Bedwars Practice" .. ":"
+                        res = res .. "\n| 玩家所选模式:" .. selected
+                        res = res .. "\n##搭路练习:"
+                        res = res .. "\n| 方块放置:" .. getInt(practice["bridging"], "blocks_placed")
+                        res = res .. "\n| 失败次数:" .. getInt(practice["bridging"], "failed_attempts")
+                        res = res .. " | 成功次数:" .. getInt(practice["bridging"], "successful_attempts")
+                        --
+                        if table.kIn(practice, "records") then
+                            local records = practice["records"]
+                            for i, v in pairs(records) do
+                                local mode = i
+                                if table.kIn(Bridging, mode) then
+                                    mode = Bridging[mode]
+                                end
+                                res = res .. "\n - " .. mode .. ":" .. v/1000 .. "s" 
+                            end
+                        end
+                        --
+                        if table.kIn(practice, "fireball_jumping") then
+                            n:send(res)
+                            delay(1000)
+                            res = "##火焰弹/TNT跳:"
+                            res = res .. "\n| 方块放置:" .. getInt(practice["fireball_jumping"], "blocks_placed")
+                            res = res .. "\n| 失败次数:" .. getInt(practice["fireball_jumping"], "failed_attempts")
+                            res = res .. " | 成功次数:" .. getInt(practice["fireball_jumping"], "successful_attempts")
+                        end
+                        --
+                        if table.kIn(practice, "mlg") then
+                            res = res .. "\n##水桶/梯子自救:"
+                            res = res .. "\n| 方块放置:" .. getInt(practice["mlg"], "blocks_placed")
+                            res = res .. "\n| 失败次数:" .. getInt(practice["mlg"], "failed_attempts")
+                            res = res .. " | 成功次数:" .. getInt(practice["mlg"], "successful_attempts")
+                        end
+                        --
+                    else
+                        res = "*该玩家没有进行过练习！"
+                    end
+                end
+                if mode == "81" then            -- 查询bedwars solo数据
                     --
-                    -- 查询bedwars solo数据
-                    --
-                    res = getBedwarsData(bedwars, res, "eight_one", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "eight_one", star)
                     --
                 end
-                if mode == "82" then
+                if mode == "82" then            -- 查询bedwars double数据
                     --
-                    -- 查询bedwars double数据
-                    --
-                    res = getBedwarsData(bedwars, res, "eight_two", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "eight_two", star)
                     --
                 end
-                if mode == "43" then
+                if mode == "43" then            -- 查询bedwars 3v3v3v3数据
                     --
-                    -- 查询bedwars 3v3v3v3数据
-                    --
-                    res = getBedwarsData(bedwars, res, "four_three", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "four_three", star)
                     --
                 end
-                if mode == "24" then
+                if mode == "24" then            -- 查询bedwars 4v4数据
                     --
-                    -- 查询bedwars 4v4数据
-                    --
-                    res = getBedwarsData(bedwars, res, "two_four", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "two_four", star)
                     --
                 end
-                if mode == "44" then
+                if mode == "44" then            -- 查询bedwars 4v4v4v4数据
                     --
-                    -- 查询bedwars 4v4v4v4数据
-                    --
-                    res = getBedwarsData(bedwars, res, "four_four", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "four_four", star)
                     --
                 end
-                if mode == "r2" then 
+                if mode == "r2" then            -- 查询bedwars rush double数据
                     --
-                    -- 查询bedwars rush double数据
-                    --
-                    res = getBedwarsData(bedwars, res, "eight_two_rush", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "eight_two_rush", star)
                     --
                 end
-                if mode == "r4" then 
+                if mode == "r4" then            -- 查询bedwars rush 4v4v4v4数据
                     --
-                    -- 查询bedwars rush 4v4v4v4数据
-                    --
-                    res = getBedwarsData(bedwars, res, "four_four_rush", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "four_four_rush", star)
                     --
                 end
-                if mode == "u1" then 
+                if mode == "u1" then            -- 查询bedwars ultimate solo数据
                     --
-                    -- 查询bedwars ultimate solo数据
-                    --
-                    res = getBedwarsData(bedwars, res, "eight_one_ultimate", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "eight_one_ultimate", star)
                     --
                 end
-                if mode == "u2" then 
+                if mode == "u2" then            -- 查询bedwars ultimate double数据
                     --
-                    -- 查询bedwars ultimate double数据
-                    --
-                    res = getBedwarsData(bedwars, res, "eight_two_ultimate", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "eight_two_ultimate", star)
                     --
                 end
-                if mode == "u4" then 
+                if mode == "u4" then            -- 查询bedwars ultimate 4v4v4v4数据
                     --
-                    -- 查询bedwars ultimate 4v4v4v4数据
-                    --
-                    res = getBedwarsData(bedwars, res, "four_four_ultimate", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "four_four_ultimate", star)
                     --
                 end
-                if mode == "c" then 
+                if mode == "c" then             -- 查询bedwars castle数据
                     --
-                    -- 查询bedwars castle数据
-                    --
-                    res = getBedwarsData(bedwars, res, "castle", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "castle", star)
                     --
                 end
-                if mode == "v2" then 
+                if mode == "v2" then            -- 查询bedwars voidless double数据
                     --
-                    -- 查询bedwars voidless double数据
-                    --
-                    res = getBedwarsData(bedwars, res, "eight_two_voidless", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "eight_two_voidless", star)
                     --
                 end
-                if mode == "v4" then 
+                if mode == "v4" then            -- 查询bedwars voidless 4v4v4v4数据
                     --
-                    -- 查询bedwars voidless 4v4v4v4数据
-                    --
-                    res = getBedwarsData(bedwars, res, "four_four_voidless", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "four_four_voidless", star)
                     --
                 end
-                if mode == "a2" then 
+                if mode == "a2" then            -- 查询bedwars armed double数据
                     --
-                    -- 查询bedwars armed double数据
-                    --
-                    res = getBedwarsData(bedwars, res, "eight_two_armed", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "eight_two_armed", star)
                     --
                 end
-                if mode == "a4" then 
+                if mode == "a4" then            -- 查询bedwars armed 4v4v4v4数据
                     --
-                    -- 查询bedwars armed 4v4v4v4数据
-                    --
-                    res = getBedwarsData(bedwars, res, "four_four_armed", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "four_four_armed", star)
                     --
                 end
-                if mode == "l2" then 
+                if mode == "l2" then            -- 查询bedwars lucky double数据
                     --
-                    -- 查询bedwars lucky double数据
-                    --
-                    res = getBedwarsData(bedwars, res, "eight_two_lucky", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "eight_two_lucky", star)
                     --
                 end
-                if mode == "l4" then 
+                if mode == "l4" then            -- 查询bedwars lucky 4v4v4v4数据
                     --
-                    -- 查询bedwars lucky 4v4v4v4数据
-                    --
-                    res = getBedwarsData(bedwars, res, "four_four_lucky", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "four_four_lucky", star)
                     --
                 end
-                if mode == "s2" then 
+                if mode == "s2" then            -- 查询bedwars swap double数据
                     --
-                    -- 查询bedwars swap double数据
-                    --
-                    res = getBedwarsData(bedwars, res, "eight_two_swap", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "eight_two_swap", star)
                     --
                 end
-                if mode == "s4" then 
+                if mode == "s4" then            -- 查询bedwars swap 4v4v4v4数据
                     --
-                    -- 查询bedwars swap 4v4v4v4数据
-                    --
-                    res = getBedwarsData(bedwars, res, "four_four_swap", star)
+                    res = getBedwarsData(bedwars, ewsData, res, "four_four_swap", star)
                     --
                 end
             end
             if cls == "sw" then
                 --
-                if mode == "solo" then
+                if mode == "solo" then          -- 查询skywars solo 数据
                     --
-                    -- 查询skywars solo 数据
                     --
                 end
             end
@@ -758,7 +801,7 @@ function getRank(data)
 end
 --
 -- 获取bedwars数据:
-function getBedwarsData(bedwars, res, mode, star)
+function getBedwarsData(bedwars, ewsData, res, mode, star)
     --
     -- 映射Bedwars模式名称
     --
@@ -777,7 +820,13 @@ function getBedwarsData(bedwars, res, mode, star)
     --
     modeName = BedwarsMode[mode]
     --
+    --
     -- 查询bedwars某一模式的数据
+    --
+    local ewinstreak = "获取失败"
+    if getBoolean(ewsData, "success") then
+        ewinstreak = getInt(ewsData, mode .. "_winstreak")
+    end
     --
     local kills         = getInt(bedwars, mode .. "_kills_bedwars")
     local deaths        = getInt(bedwars, mode .. "_deaths_bedwars")
@@ -800,14 +849,14 @@ function getBedwarsData(bedwars, res, mode, star)
         winstreak = bedwars[mode .. "_winstreak"]
     end
     --
-    res = res .. "[" .. star .. "✫]的Bedwars " .. modeName .. "数据:"
-    res = res .. "\n| 连胜:" .. winstreak
-    res = res .. "\n| 击杀:" .. kills .. " 死亡:" .. deaths .. " K/D:" .. kdr
-    res = res .. "\n| 终杀:" .. final_kills .. " 终死:" .. final_deaths .. " FK/D:" .. fkdr
-    res = res .. "\n| 拆床:" .. beds_broken .. " 被拆:" .. beds_lost .. " BB/L:" .. bblr
-    res = res .. "\n| 胜场:" .. wins .. " 败场:" .. losses .. " W/L:" .. wlr
-    res = res .. "\n| 绿宝石收集:" .. emerald .. " | 钻石收集:" .. diamond
-    res = res .. "\n| 金锭收集:" .. gold .. " | 铁锭收集:" .. iron
+    res = res .. "[" .. star .. "✫] Bedwars " .. modeName .. ":"
+    res = res .. "\n| WS:" .. winstreak .. " | EWS:" .. ewinstreak
+    res = res .. "\n| K:" .. kills .. " D:" .. deaths .. " K/D:" .. kdr
+    res = res .. "\n| FK:" .. final_kills .. " FD:" .. final_deaths .. " FK/D:" .. fkdr
+    res = res .. "\n| BB:" .. beds_broken .. " BL:" .. beds_lost .. " BB/L:" .. bblr
+    res = res .. "\n| W:" .. wins .. " L:" .. losses .. " W/L:" .. wlr
+    res = res .. "\n| 绿收集:" .. emerald .. " | 钻收集:" .. diamond
+    res = res .. "\n| 金收集:" .. gold .. " | 铁收集:" .. iron
     --
     return res
 end
@@ -829,4 +878,4 @@ mode: \r
     81, 82, 34, 42, 44\r
     r2, r4, u1, u2, u4\r
     c , v2, v4, l2, l4\r
-    s2, s4
+    s2, s4, pra
