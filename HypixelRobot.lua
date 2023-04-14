@@ -77,7 +77,7 @@ function main(m)
     local prefix = input[1]
     --
     local mojangAPI = "https://api.mojang.com/users/profiles/minecraft/"
-    local key       = "82cd68aa-742d-4bab-a52f-f29a644d6a2c"
+    local key       = ""
     --
     -- 映射信息代码的中文名称
     --
