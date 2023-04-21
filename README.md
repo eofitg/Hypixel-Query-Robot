@@ -4,11 +4,11 @@ Based on Clousx6&amp;lua
 ------------
 
 #### Features
-* Denick
-* All Hypixel Games
-* Hypixel Player Estimated Winstreak
-* Hypixel Player Daily Stats and Session Stats
-* McPlayHD Stats Query ~~(Although I don't know if they had public API at all)~~
+* ✏ Denick                                                                                    
+* ✏ All Hypixel Games
+* ✔ Hypixel Player Estimated Winstreak                                                    
+* ✏ Hypixel Player Daily Stats and Session Stats
+* ✏ McPlayHD Stats Query ~~(Although I don't know if they had public API at all)~~
 
 #### Usage
 * #uuid
@@ -19,8 +19,9 @@ Based on Clousx6&amp;lua
 * `#hyp` Wrong format if you use player or guild name that does not exist in hypixel
 
 ### API
-* `api.hypixel.net`
 * `api.mojang.com`
+* `api.hypixel.net`
+* `api.antisniper.net`
 
 #### Credits
 * Clousx6
