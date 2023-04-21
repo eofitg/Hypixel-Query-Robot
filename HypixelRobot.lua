@@ -29,16 +29,18 @@ function main(m)
         n:send(res)
         return
     end
-    --
-    local mojangAPI = "https://api.mojang.com/users/profiles/minecraft/"
-    local name = input[NoI]
-    n:send("Getting uuid ... (No reply:Invaild Player Name)")
-    --
-    local mjdata = n:get(mojangAPI..name)
-    local t = json.decode(mjdata)
-    local uuid = t["id"]
-    n:send("Success.\n"..name.."\'s Unique User ID:\n"..uuid)
-    --
+    if NoI == 2 then
+        --
+        local mojangAPI = "https://api.mojang.com/users/profiles/minecraft/"
+        local name = input[NoI]
+        n:send("Getting uuid ... (No reply:Invaild Player Name)")
+        --
+        local mjdata = n:get(mojangAPI..name)
+        local t = json.decode(mjdata)
+        local uuid = t["id"]
+        n:send("Success.\n"..name.."\'s Unique User ID:\n"..uuid)
+        --
+    end
 end
 --
 -- 字符串分割
@@ -77,8 +79,8 @@ function main(m)
     local prefix = input[1]
     --
     local mojangAPI = "https://api.mojang.com/users/profiles/minecraft/"
-    local hypkey    = ""                    -- Hypixel Key
-    local askey     = ""                    -- AntiSniper Key
+    local hypkey    = "82cd68aa-742d-4bab-a52f-f29a644d6a2c"                    -- Hypixel Key
+    local askey     = "52f2cf9a-d176-44c9-be53-65287729489e"                    -- AntiSniper Key
     --
     -- 映射信息代码的中文名称
     --
@@ -173,7 +175,7 @@ function main(m)
             end
             --
             n:send(res)
-            delay(1000)
+            n:sleep(1)
             res = ""
             if table.kIn(guild, "tagColor") then
                 local tagColor = getString(guild, "tagColor")
@@ -283,7 +285,7 @@ function main(m)
             end
             --
             n:send(res)
-            delay(1000)
+            n:sleep(1)
             res = "| 社交媒体:"
             if table.kIn(player, "socialMedia") then
                 local socialMedia = getTable(player, "socialMedia")
@@ -292,11 +294,20 @@ function main(m)
                     if table.kIn(links, "YOUTUBE") then
                         res = res .. "\n| YouTube:" .. links["YOUTUBE"]
                     end
-                    if table.kIn(links, "DISCORD") then
-                        res = res .. "\n| Discord:" .. links["DISCORD"]
+                    if table.kIn(links, "TIKTOK") then
+                        res = res .. "\n| TikTok:" .. links["TIKTOK"]
+                    end
+                    if table.kIn(links, "TELEGRAM") then
+                        res = res .. "\n| Telegram:" .. links["TELEGRAM"]
                     end
                     if table.kIn(links, "TWITTER") then
                         res = res .. "\n| Twitter:" .. links["TWITTER"]
+                    end
+                    if table.kIn(links, "TWITCH") then
+                        res = res .. "\n| Twitch:" .. links["TWITCH"]
+                    end
+                    if table.kIn(links, "DISCORD") then
+                        res = res .. "\n| Discord:" .. links["DISCORD"]
                     end
                 end
             end
@@ -343,7 +354,7 @@ function main(m)
                     winstreak = bedwars["winstreak"]
                 end
                 --
-                res = res .. "[" .. star .. "✫] Bedwars:"
+                res = res .. "[" .. star .. "✫]-Bedwars:"
                 res = res .. "\n| 硬币:" .. coins .. " | WS:" .. winstreak
                 res = res .. "\n| 完成挑战:".. challenges .. " | EWS:" .. ewinstreak
                 res = res .. "\n| K:" .. kills .. " D:" .. deaths .. " K/D:" .. kdr
@@ -377,7 +388,7 @@ function main(m)
                     winstreak = skywars["win_streak"]
                 end
                 --
-                res = res .. "[" .. star .. "] SkyWars:"
+                res = res .. "[" .. star .. "]-SkyWars:"
                 res = res .. "\n| 硬币:" .. coins .. " | WS:" .. winstreak
                 res = res .. "\n| K:" .. kills .. " D:" .. deaths .. " K/D:" .. kdr
                 res = res .. "\n| W:" .. wins .. " L:" .. losses .. " W/L:" .. wlr
@@ -410,7 +421,7 @@ function main(m)
                         if table.kIn(Practice, selected) then
                             selected = Practice[selected]
                         end
-                        res = res .. "[" .. star .. "✫] Bedwars Practice" .. ":"
+                        res = res .. "[" .. star .. "✫]-Bedwars Practice" .. ":"
                         res = res .. "\n| 玩家所选模式:" .. selected
                         res = res .. "\n##搭路练习:"
                         res = res .. "\n| 方块放置:" .. getInt(practice["bridging"], "blocks_placed")
@@ -430,7 +441,7 @@ function main(m)
                         --
                         if table.kIn(practice, "fireball_jumping") then
                             n:send(res)
-                            delay(1000)
+                            n:sleep(1)
                             res = "##火焰弹/TNT跳:"
                             res = res .. "\n| 方块放置:" .. getInt(practice["fireball_jumping"], "blocks_placed")
                             res = res .. "\n| 失败次数:" .. getInt(practice["fireball_jumping"], "failed_attempts")
@@ -849,7 +860,7 @@ function getBedwarsData(bedwars, ewsData, res, mode, star)
         winstreak = bedwars[mode .. "_winstreak"]
     end
     --
-    res = res .. "[" .. star .. "✫] Bedwars " .. modeName .. ":"
+    res = res .. "[" .. star .. "✫]-Bedwars " .. modeName .. ":"
     res = res .. "\n| WS:" .. winstreak .. " | EWS:" .. ewinstreak
     res = res .. "\n| K:" .. kills .. " D:" .. deaths .. " K/D:" .. kdr
     res = res .. "\n| FK:" .. final_kills .. " FD:" .. final_deaths .. " FK/D:" .. fkdr
@@ -860,22 +871,235 @@ function getBedwarsData(bedwars, ewsData, res, mode, star)
     --
     return res
 end
---
--- 暴力延迟
-function delay(n)
-    local i = 0
-    while i < n do
-        i = i + 0.001
-    end
-end
 
 
 
 #hypall
 当前支持查询参数:\r
-class: bw, sw, gu\r
+category: bw, sw, gu\r
 mode: \r
     81, 82, 34, 42, 44\r
     r2, r4, u1, u2, u4\r
     c , v2, v4, l2, l4\r
     s2, s4, pra
+
+
+
+#denick .*|#denick
+--lua编程
+function main(m)
+    --
+    -- 查询玩家nick
+    --
+    -- 外挂lua包存储路径
+    package.path = "/storage/emulated/0/luaPackages/?.lua;" .. package.path
+    -- 必需依赖
+    local json = require "json"
+    --
+    n       = m
+    msg     = n.msg                --获取发言人的消息
+    sendid  = n.sendid             --获取发言人的QQ
+    groupid = n.groupid            --获取机器人的群号
+    robort  = n.robort             --获取机器人QQ
+    nick    = n.nick               --获取机器人昵称
+    zhu     = n.zhu                --获取主人
+    ATQ     = n.ATQ                --获取艾特QQ
+    --
+    local input  = split(msg, " ")
+    local NoI    = #input
+    --
+    if NoI == 1 then                                                            -- #denick
+        local res = "查询方式:\n#denick <name>\n无效nick将不做回复"
+        n:send(res)
+        return
+    end
+    --
+    if NoI == 2 then
+        --
+        local name      = input[NoI]
+        local askey     = "52f2cf9a-d176-44c9-be53-65287729489e"
+        local res       = ""
+        n:send("Checking Player IGN... (No reply:Invaild Nick)")
+        --
+        local left, right = string.find(name, "=")
+        if left then
+            local l, r = string.find(name, "&")
+            if l then                                                           -- #denick fk=XXX&bb=XXX|bb=XXX&fk=XXX
+                --
+                local k1 = string.sub(name, 1, 2)
+                local k2 = string.sub(name, l + 1, l + 2)
+                local v1 = string.sub(name, 4, l - 1)
+                local v2 = string.sub(name, l + 4, #name)
+                --
+                if k1 == "fk" and k2 == "bb" or k1 == "bb" and k2 == "fk" then
+                    --
+                    if k1 ~= "fk" then
+                        k1, k2 = k2, k1
+                        v1, v2 = v2, v1
+                    end
+                    --
+                    local temp = {}
+                    --
+                    local denickAPI1 = "https://api.antisniper.net/v2/other/denick?key=" .. askey .. "&finals=" .. v1
+                    local denickData1 = json.decode(n:get(denickAPI1))
+                    local denickAPI2 = "https://api.antisniper.net/v2/other/denick?key=" .. askey .. "&beds=" .. v2
+                    local denickData2 = json.decode(n:get(denickAPI2))
+                    --
+                    local fk = getTable(denickData1, "final_kills")
+                    local count_fk = getInt(fk, "count")
+                    local bb = getTable(denickData2, "beds_broken")
+                    local count_bb = getInt(bb, "count")
+                    --
+                    if count_fk == 0 and count_bb == 0 then
+                        --
+                    elseif count_fk == 0 then
+                        temp = getTable(bb, "players")
+                    elseif count_bb == 0 then
+                        temp = getTable(fk, "players")
+                    else
+                        temp = intersection(getTable(bb, "players"), getTable(fk, "players"))
+                    end
+                    --
+                    if temp == {} then
+                        res = "无效的nick名称！"
+                    else
+                        res = res .. "查询到符合该数据的nick玩家有:"
+                        for i, v in pairs(temp) do
+                            local ign = getString(v, "ign")
+                            res = res .. " " .. ign
+                        end
+                    end
+                end
+            else                                                                -- #denick fk=XXX|bb=XXX             
+                --                
+                local k = string.sub(name, 1, 2)
+                local v = string.sub(name, 4, #name)
+                if k == "fk" then
+                    --
+                    local denickAPI = "https://api.antisniper.net/v2/other/denick?key=" .. askey .. "&finals=" .. v
+                    local denickData = json.decode(n:get(denickAPI))
+                    --
+                    local fk = getTable(denickData, "final_kills")
+                    local count = getInt(fk, "count")
+                    --
+                    if count == 0 then
+                        res = "无效的nick名称！"
+                    else
+                        local players = getTable(fk, "players")
+                        res = res .. "查询到符合该数据的nick玩家有:"
+                        for i, v in pairs(players) do
+                            local ign = getString(v, "ign")
+                            res = res .. " " .. ign
+                        end
+                    end
+                end
+                if k == "bb" then
+                    --
+                    local denickAPI = "https://api.antisniper.net/v2/other/denick?key=" .. askey .. "&beds=" .. v
+                    local denickData = json.decode(n:get(denickAPI))
+                    --
+                    local bb = getTable(denickData, "beds_broken")
+                    local count = getInt(bb, "count")
+                    --
+                    if count == 0 then
+                        res = "无效的nick名称！"
+                    else
+                        local players = getTable(bb, "players")
+                        res = res .. "查询到符合该数据的nick玩家有:"
+                        for i, v in pairs(players) do
+                            local ign = getString(v, "ign")
+                            res = res .. " " .. ign
+                        end
+                    end
+                end
+                --
+            end
+        else                                                                    -- #denick <nick>      
+            --
+            local denickAPI = "https://api.antisniper.net/v2/other/denick?key=" .. askey .. "&nick=" .. name
+            local denickData = json.decode(n:get(denickAPI))
+            --
+            local results = denickData["results"]
+            local count = #results
+            --
+            if count == 0 then
+                res = "无效的nick名称！"
+            else
+                res = res .. "查询到符合该数据的nick玩家有:"
+                for i, v in pairs(results) do
+                    n:send(results[i]["ign"])
+                    local ign = results[i]["ign"]
+                    res = res .. " " .. ign
+                end
+            end
+        end
+        n:send(res)
+    end
+end
+--
+-- 字符串分割
+function split(str, reps)
+    local resultStrList = {}
+    string.gsub(str,'[^'..reps..']+',function (w)
+        table.insert(resultStrList,w)
+    end)
+    return resultStrList
+end
+--
+-- 取交集
+function intersection(t1, t2)
+    local ret = {}
+    for k, v1 in pairs(t1) do
+        local equal = false
+        for k, v2 in pairs(t2) do
+            if v1 == v2 then
+                equal = true
+                break
+            end
+        end
+        if equal then
+            table.insert(ret, v1)
+        end
+    end
+    return ret
+end
+--
+--
+-- 安全获取工具:
+--
+--
+-- 获取布尔值:
+function getBoolean(data, key)
+    local res = false
+    if table.kIn(data, key) then
+        res = data[key]
+    end
+    return res
+end
+--
+-- 获取整型值:
+function getInt(data, key)
+    local res = 0
+    if table.kIn(data, key) then
+        res = data[key]
+    end
+    return res
+end
+--
+-- 获取字符串:
+function getString(data, key)
+    local res = "获取失败"
+    if table.kIn(data, key) then
+        res = data[key]
+    end
+    return res
+end
+--
+-- 获取映射表:
+function getTable(data, key)
+    local res = {}
+    if table.kIn(data, key) then
+        res = data[key]
+    end
+    return res
+end
